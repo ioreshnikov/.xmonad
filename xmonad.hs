@@ -2,7 +2,8 @@ import qualified Data.Map
 import System.Exit
 
 import XMonad
-import qualified XMonad.Actions.FocusNth as FocusNth
+import XMonad.Actions.FocusNth
+import XMonad.Hooks.DynamicLog
 import qualified XMonad.StackSet as Stack
 
 
@@ -28,10 +29,10 @@ keys' config = Data.Map.fromList $
   [ ((super, key), windows $ Stack.greedyView workspace)
   | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F9] ]
   ++
-  [ ((super, key), windows $ Stack.shift workspace)
+  [ ((super .|. shift, key), windows $ Stack.shift workspace)
   | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F9] ]
   ++
-  [ ((super, key), FocusNth.focusNth index)
+  [ ((super, key), focusNth index)
   | (index, key) <- zip [0 ..] [xK_1 .. xK_9] ]
 
 
@@ -43,8 +44,12 @@ exit = io exitSuccess
 workspaces' = map show [1 .. 5]
 
 
-main = xmonad $ def
+config' = def
   { modMask = super
   , workspaces = workspaces'
   , keys = keys'
+  , logHook = dynamicLog
   }
+
+
+main = xmonad =<< xmobar config'
