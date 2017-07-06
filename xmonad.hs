@@ -1,13 +1,14 @@
-import Data.Map
+import qualified Data.Map
 import System.Exit
 
 import XMonad
+import qualified XMonad.Actions.FocusNth as FocusNth
 import qualified XMonad.StackSet as Stack
 
 
 super = mod1Mask
 shift = shiftMask
-keys' config = fromList $
+keys' config = Data.Map.fromList $
   [ ((super, xK_t), spawn $ terminal config)
   , ((super, xK_q), kill)
   , ((super, xK_space), sendMessage NextLayout)
@@ -23,6 +24,15 @@ keys' config = fromList $
   , ((super, xK_Escape), recompile')
   , ((super .|. shift, xK_Escape), exit)
   ]
+  ++
+  [ ((super, key), windows $ Stack.greedyView workspace)
+  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F9] ]
+  ++
+  [ ((super, key), windows $ Stack.shift workspace)
+  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F9] ]
+  ++
+  [ ((super, key), FocusNth.focusNth index)
+  | (index, key) <- zip [0 ..] [xK_1 .. xK_9] ]
 
 
 terminal' = "xterm"
