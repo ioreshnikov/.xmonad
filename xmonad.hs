@@ -1,4 +1,5 @@
-import qualified Data.Map as Map
+import Data.Map
+import System.Exit
 
 import XMonad
 import qualified XMonad.StackSet as Stack
@@ -6,7 +7,7 @@ import qualified XMonad.StackSet as Stack
 
 super = mod1Mask
 shift = shiftMask
-keys' config = Map.fromList $
+keys' config = fromList $
   [ ((super, xK_t), spawn $ terminal config)
   , ((super, xK_q), kill)
   , ((super, xK_space), sendMessage NextLayout)
@@ -19,10 +20,14 @@ keys' config = Map.fromList $
   , ((super, xK_w), withFocused $ windows . Stack.sink)
   , ((super, xK_comma), sendMessage (IncMasterN 1))
   , ((super, xK_period), sendMessage (IncMasterN (-1)))
+  , ((super, xK_Escape), recompile')
+  , ((super .|. shift, xK_Escape), exit)
   ]
 
 
 terminal' = "xterm"
+recompile' = spawn "xmonad --recompile && xmonad --restart"
+exit = io exitSuccess
 
 
 workspaces' = map show [1 .. 5]
