@@ -41,7 +41,7 @@ recompile' = spawn "xmonad --recompile && xmonad --restart"
 exit = io exitSuccess
 
 
-workspaces' = map show [1 .. 5]
+workspaces' = map (:[]) ['α' .. 'ω']
 
 
 config' = def
