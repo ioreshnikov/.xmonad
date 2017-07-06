@@ -1,10 +1,11 @@
-import qualified XMonad as X
+import XMonad
 
 
-workspaces = map show [1 .. 5]
+modMask' = mod1Mask
+workspaces' = map show [1 .. 5]
 
 
-main = X.xmonad $ X.def
-  { X.modMask = X.mod1Mask
-  , X.workspaces = workspaces
+main = xmonad $ def
+  { modMask = modMask'
+  , workspaces = workspaces'
   }
