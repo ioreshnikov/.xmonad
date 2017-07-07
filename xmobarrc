@@ -1,0 +1,16 @@
+Config
+  { font = "$theme.font$"
+  , additionalFonts = []
+  , position = TopSize C 100 $theme.unit$
+  , border = NoBorder
+  , bgColor = "$theme.normal.background$"
+  , fgColor = "$theme.normal.foreground$"
+  , commands =
+    [ Run StdinReader
+    , Run Date "%B %d, %A" "date" 10
+    , Run Date "%H:%M"     "time" 10
+    ]
+  , sepChar  = "%"
+  , alignSep = "}{"
+  , template = " }%StdinReader%{ <fc=$theme.hidden.foreground$,$theme.hidden.background$>%date%</fc> %time% "
+  }

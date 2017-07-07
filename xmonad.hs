@@ -1,17 +1,31 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 -- Imports --
 -------------
 
 -- Standard library --
+import Data.Data
 import qualified Data.Map
 import System.Exit
+
+-- Contrib. modules --
+import Text.StringTemplate
+import Text.StringTemplate.GenericStandard
 
 -- XMonad --
 import XMonad hiding (Font)
 import XMonad.Actions.FocusNth
 import XMonad.Hooks.DynamicLog hiding (xmobar)
+import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.ManageHelpers
 import XMonad.Layout.Grid
+import XMonad.Layout.MultiToggle
+import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
+import XMonad.Layout.Tabbed
+import qualified XMonad.Prompt as Prompt
+import XMonad.Prompt.Shell
 import qualified XMonad.StackSet as Stack
 
 
@@ -27,7 +41,8 @@ data Colors = Colors
   { foreground :: Foreground
   , background :: Background
   , border :: Border
-  }
+  } deriving Data
+
 fg = foreground
 bg = background
 bd = border
@@ -39,7 +54,7 @@ data XMonadTheme = XMonadTheme
   , active :: Colors
   , hidden :: Colors
   , urgent :: Colors
-  }
+  } deriving Data
 
 twilightDarkTheme = XMonadTheme
   { font = "xft:Ubuntu Mono:size=10"
@@ -59,6 +74,9 @@ theme = twilightDarkTheme
 terminal' = "xterm"
 recompile' = spawn "xmonad --recompile && xmonad --restart"
 exit = io exitSuccess
+fullscreen = do
+    sendMessage ToggleStruts
+    sendMessage (Toggle FULL)
 
 
 -- Key bindings --
@@ -91,7 +109,10 @@ keys' config = Data.Map.fromList $
   ++
   [ ((super, key), focusNth index)
   | (index, key) <- zip [0 ..] [xK_1 .. xK_9] ]
-
+  ++
+  [ ((super, xK_r), shellPrompt prompt') ]
+  ++
+  [ ((super, xK_f), fullscreen) ]
 
 -- Workspaces and workscreens --
 --------------------------------
@@ -99,16 +120,17 @@ keys' config = Data.Map.fromList $
 workspaces' = map (:[]) ['α' .. 'ω']
 
 
--- XMobar pretty printer --
----------------------------
+-- XMobar --
+------------
 
+-- Pretty printer --
 makePrettyPrinter color = def
   { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . dblpad
   , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . dblpad
   , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . dblpad
   , ppWsSep = ""
   , ppSep = ""
-  , ppTitle = color (fg . normal $ theme) (bg . normal $ theme) . dblpad
+  , ppTitle = const ""
   , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme) . dblpad
   }
   where dblpad = pad . pad
@@ -116,6 +138,13 @@ makePrettyPrinter color = def
 prettyPrinter = makePrettyPrinter xmobarColor
 toggleStruts = const (super, xK_b)
 xmobar = statusBar "xmobar" prettyPrinter toggleStruts
+
+-- Config compilation --
+compileWithTheme theme templateFile outputFile = do
+    templateString <- readFile templateFile
+    let template = newSTMP templateString :: StringTemplate String
+    let output = toString $ setAttribute "theme" theme template
+    writeFile outputFile output
 
 
 -- Layouts --
@@ -125,17 +154,53 @@ grid = named "G" $ Grid
 tall = named "T" $ Tall 1 (1/2) (1/2)
 mirror = named "M" $ Mirror tall
 full = named "F" $ Full
-layouts = smartBorders $ grid ||| tall ||| mirror ||| full
+layoutHook' = smartBorders $ grid ||| tall ||| mirror ||| full
 
+
+-- Prompt --
+------------
+
+prompt' = Prompt.def
+  { Prompt.font = font theme
+  , Prompt.height = fromIntegral . unit $ theme
+  , Prompt.fgColor = fg . normal $ theme
+  , Prompt.bgColor = bg . normal $ theme
+  , Prompt.fgHLight = fg . active $ theme
+  , Prompt.bgHLight = bg . active $ theme
+  , Prompt.borderColor = bd . normal $ theme
+  , Prompt.position = Prompt.Top
+  }
+
+
+-- Management --
+----------------
+
+manageHook' = composeAll
+  [ className =? "gl" --> doFloat
+  , className =? "mpv" --> doFloat
+  , className =? "Gimp" --> doFloat
+  , className =? "Plugin-container" --> doFloat
+  , className =? "Gnuplot_qt" --> doFloat
+  , isFullscreen --> doFullFloat
+  ]
+
+
+-- Config and startup --
+------------------------
 
 config' = def
   { modMask = super
   , workspaces = workspaces'
   , keys = keys'
-  , layoutHook = layouts
+  , layoutHook = layoutHook'
+  , manageHook = manageHook'
   , normalBorderColor = bd . normal $ theme
   , focusedBorderColor = bd . active $ theme
   }
 
 
-main = xmonad =<< xmobar config'
+main = do
+  let templateFile = "/home/me/.xmonad/xmobarrc"
+  let outputFile = "/home/me/.xmobarrc"
+  compileWithTheme theme templateFile outputFile
+  xmonad =<< xmobar config'
