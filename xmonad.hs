@@ -4,6 +4,9 @@ import System.Exit
 import XMonad hiding (Font)
 import XMonad.Actions.FocusNth
 import XMonad.Hooks.DynamicLog hiding (xmobar)
+import XMonad.Layout.Grid
+import XMonad.Layout.Named
+import XMonad.Layout.NoBorders
 import qualified XMonad.StackSet as Stack
 
 
@@ -42,7 +45,7 @@ twilightDarkTheme = XMonadTheme
 theme = twilightDarkTheme
 
 
-super = mod1Mask
+super = mod4Mask
 shift = shiftMask
 keys' config = Data.Map.fromList $
   [ ((super, xK_t), spawn $ terminal config)
@@ -95,10 +98,18 @@ toggleStruts = const (super, xK_b)
 xmobar = statusBar "xmobar" prettyPrinter toggleStruts
 
 
+grid = named "G" $ Grid
+tall = named "T" $ Tall 1 (1/2) (1/2)
+mirror = named "M" $ Mirror tall
+full = named "F" $ Full
+layouts = smartBorders $ grid ||| tall ||| mirror ||| full
+
+
 config' = def
   { modMask = super
   , workspaces = workspaces'
   , keys = keys'
+  , layoutHook = layouts
   , normalBorderColor = bd . normal $ theme
   , focusedBorderColor = bd . active $ theme
   }
