@@ -10,6 +10,7 @@ import qualified Data.Map
 import System.Exit
 
 -- Contrib. modules --
+import Graphics.X11.ExtraTypes.XF86
 import Text.StringTemplate
 import Text.StringTemplate.GenericStandard
 
@@ -76,9 +77,17 @@ theme = twilightDarkTheme
 terminal' = "xterm"
 recompile' = spawn "xmonad --recompile && xmonad --restart"
 exit = io exitSuccess
+
 fullscreen = do
     sendMessage ToggleStruts
     sendMessage (Toggle FULL)
+
+volumeUp = spawn "amixer -M -D pulse set Master 5%+"
+volumeDown = spawn "amixer -M -D pulse set Master 5%-"
+volumeToggle = spawn "amixer -D pulse set Master toggle"
+
+brightnessUp = spawn "xbacklight + 10"
+brightnessDown = spawn "xbacklight - 10"
 
 
 -- Key bindings --
@@ -115,6 +124,14 @@ keys' config = Data.Map.fromList $
   [ ((super, xK_r), shellPrompt prompt') ]
   ++
   [ ((super, xK_f), fullscreen) ]
+  ++
+  [ ((0, xF86XK_AudioLowerVolume), volumeDown)
+  , ((0, xF86XK_AudioRaiseVolume), volumeUp)
+  , ((0, xF86XK_AudioMute), volumeToggle) ]
+  ++
+  [ ((0, xF86XK_MonBrightnessDown), brightnessDown)
+  , ((0, xF86XK_MonBrightnessUp), brightnessUp) ]
+
 
 -- Workspaces and workscreens --
 --------------------------------
