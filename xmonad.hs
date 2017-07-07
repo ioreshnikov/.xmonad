@@ -1,10 +1,45 @@
 import qualified Data.Map
 import System.Exit
 
-import XMonad
+import XMonad hiding (Font)
 import XMonad.Actions.FocusNth
 import XMonad.Hooks.DynamicLog
 import qualified XMonad.StackSet as Stack
+
+
+type Font = String
+type Foreground = String
+type Background = String
+type Border = String
+
+data Colors = Colors
+  { foreground :: Foreground
+  , background :: Background
+  , border :: Border
+  }
+fg = foreground
+bg = background
+bd = border
+
+data XMonadTheme = XMonadTheme
+  { font :: Font
+  , unit :: Integer
+  , normal :: Colors
+  , active :: Colors
+  , hidden :: Colors
+  , urgent :: Colors
+  }
+
+twilightDarkTheme = XMonadTheme
+  { font = "xft:Ubuntu Mono:size=10"
+  , unit = 32
+  , normal = Colors "#dcdddd" "#181d23" "#181d23"
+  , active = Colors "#00959e" "#1b333e" "#00959e"
+  , hidden = Colors "#313c4d" "#181d23" "#181d23"
+  , urgent = Colors "#deae3e" "#2a2921" "#deae3e"
+  }
+
+theme = twilightDarkTheme
 
 
 super = mod1Mask
@@ -44,11 +79,26 @@ exit = io exitSuccess
 workspaces' = map (:[]) ['α' .. 'ω']
 
 
+makePrettyPrinter color = def
+  { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . dblpad
+  , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . dblpad
+  , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . dblpad
+  , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme) . dblpad
+  , ppTitle = color (fg . normal $ theme) (bg . normal $ theme) . dblpad
+  }
+  where dblpad = pad . pad
+
+prettyPrinter = makePrettyPrinter xmobarColor
+logHook' = dynamicLogWithPP prettyPrinter
+
+
 config' = def
   { modMask = super
   , workspaces = workspaces'
   , keys = keys'
-  , logHook = dynamicLog
+  , logHook = logHook'
+  , normalBorderColor = bd . normal $ theme
+  , focusedBorderColor = bd . active $ theme
   }
 
 
