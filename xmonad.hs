@@ -18,6 +18,7 @@ import XMonad.Actions.FocusNth
 import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
+import XMonad.Hooks.UrgencyHook
 import XMonad.Layout.Grid
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
@@ -203,4 +204,4 @@ main = do
   let templateFile = "/home/me/.xmonad/xmobarrc"
   let outputFile = "/home/me/.xmobarrc"
   compileWithTheme theme templateFile outputFile
-  xmonad =<< xmobar config'
+  xmonad . withUrgencyHook NoUrgencyHook =<< xmobar config'
