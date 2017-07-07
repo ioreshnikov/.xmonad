@@ -60,7 +60,7 @@ data XMonadTheme = XMonadTheme
 twilightDarkTheme = XMonadTheme
   { font = "xft:Ubuntu Mono:size=10"
   , unit = 32
-  , normal = Colors "#dcdddd" "#181d23" "#181d23"
+  , normal = Colors "#dcdddd" "#181d23" "#313c4d"
   , active = Colors "#00959e" "#1b333e" "#00959e"
   , hidden = Colors "#313c4d" "#181d23" "#181d23"
   , urgent = Colors "#deae3e" "#2a2921" "#deae3e"

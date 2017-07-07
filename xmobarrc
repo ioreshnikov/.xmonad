@@ -2,9 +2,10 @@ Config
   { font = "$theme.font$"
   , additionalFonts = []
   , position = TopSize C 100 $theme.unit$
-  , border = NoBorder
   , bgColor = "$theme.normal.background$"
   , fgColor = "$theme.normal.foreground$"
+  , border = BottomB
+  , borderColor = "$theme.normal.border$"
   , commands =
     [ Run StdinReader
     , Run Date "%B %d, %A" "date" 10
