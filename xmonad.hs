@@ -3,7 +3,7 @@ import System.Exit
 
 import XMonad hiding (Font)
 import XMonad.Actions.FocusNth
-import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.DynamicLog hiding (xmobar)
 import qualified XMonad.StackSet as Stack
 
 
@@ -83,20 +83,22 @@ makePrettyPrinter color = def
   { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . dblpad
   , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . dblpad
   , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . dblpad
-  , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme) . dblpad
+  , ppWsSep = ""
+  , ppSep = ""
   , ppTitle = color (fg . normal $ theme) (bg . normal $ theme) . dblpad
+  , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme) . dblpad
   }
   where dblpad = pad . pad
 
 prettyPrinter = makePrettyPrinter xmobarColor
-logHook' = dynamicLogWithPP prettyPrinter
+toggleStruts _ = (super, xK_b)
+xmobar = statusBar "xmobar" prettyPrinter toggleStruts
 
 
 config' = def
   { modMask = super
   , workspaces = workspaces'
   , keys = keys'
-  , logHook = logHook'
   , normalBorderColor = bd . normal $ theme
   , focusedBorderColor = bd . active $ theme
   }
