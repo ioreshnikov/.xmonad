@@ -8,10 +8,22 @@ Config
   , borderColor = "$theme.normal.border$"
   , commands =
     [ Run StdinReader
+    , Run Battery
+      [ "--template", "<acstatus>"
+      , "--Low", "20"
+      , "--High", "80"
+      , "--low", "$theme.urgent.foreground$,$theme.urgent.background$"
+      , "--normal", "$theme.normal.foreground$,$theme.normal.background$"
+      , "--high", "$theme.hidden.foreground$,$theme.hidden.background$"
+      , "--"
+      , "-o", "<fc=$theme.hidden.foreground$,$theme.hidden.background$><left>% (<timeleft>)</fc>"
+      , "-O", "<fc=$theme.hidden.foreground$,$theme.hidden.background$><left>% (<timeleft>)</fc>"
+      , "-i", ""
+      ] 50
     , Run Date "%B %d, %A" "date" 10
-    , Run Date "%H:%M"     "time" 10
+    , Run Date "%H:%M" "time" 10
     ]
   , sepChar  = "%"
   , alignSep = "}{"
-  , template = " }%StdinReader%{ <fc=$theme.hidden.foreground$,$theme.hidden.background$>%date%</fc> %time% "
+  , template = "  %battery% }%StdinReader%{ <fc=$theme.hidden.foreground$,$theme.hidden.background$>%date%</fc> %time%  "
   }
