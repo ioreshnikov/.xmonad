@@ -1,6 +1,11 @@
+-- Imports --
+-------------
+
+-- Standard library --
 import qualified Data.Map
 import System.Exit
 
+-- XMonad --
 import XMonad hiding (Font)
 import XMonad.Actions.FocusNth
 import XMonad.Hooks.DynamicLog hiding (xmobar)
@@ -9,6 +14,9 @@ import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
 import qualified XMonad.StackSet as Stack
 
+
+-- XMonad theme --
+------------------
 
 type Font = String
 type Foreground = String
@@ -45,6 +53,17 @@ twilightDarkTheme = XMonadTheme
 theme = twilightDarkTheme
 
 
+-- Custom commands --
+---------------------
+
+terminal' = "xterm"
+recompile' = spawn "xmonad --recompile && xmonad --restart"
+exit = io exitSuccess
+
+
+-- Key bindings --
+------------------
+
 super = mod4Mask
 shift = shiftMask
 keys' config = Data.Map.fromList $
@@ -74,13 +93,14 @@ keys' config = Data.Map.fromList $
   | (index, key) <- zip [0 ..] [xK_1 .. xK_9] ]
 
 
-terminal' = "xterm"
-recompile' = spawn "xmonad --recompile && xmonad --restart"
-exit = io exitSuccess
-
+-- Workspaces and workscreens --
+--------------------------------
 
 workspaces' = map (:[]) ['α' .. 'ω']
 
+
+-- XMobar pretty printer --
+---------------------------
 
 makePrettyPrinter color = def
   { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . dblpad
@@ -97,6 +117,9 @@ prettyPrinter = makePrettyPrinter xmobarColor
 toggleStruts = const (super, xK_b)
 xmobar = statusBar "xmobar" prettyPrinter toggleStruts
 
+
+-- Layouts --
+-------------
 
 grid = named "G" $ Grid
 tall = named "T" $ Tall 1 (1/2) (1/2)
