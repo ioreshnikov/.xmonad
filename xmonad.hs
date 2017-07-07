@@ -91,7 +91,7 @@ makePrettyPrinter color = def
   where dblpad = pad . pad
 
 prettyPrinter = makePrettyPrinter xmobarColor
-toggleStruts _ = (super, xK_b)
+toggleStruts = const (super, xK_b)
 xmobar = statusBar "xmobar" prettyPrinter toggleStruts
 
 
