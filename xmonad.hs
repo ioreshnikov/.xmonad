@@ -113,10 +113,10 @@ keys' config = Data.Map.fromList $
   ]
   ++
   [ ((super, key), windows $ Stack.greedyView workspace)
-  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F9] ]
+  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F12] ]
   ++
   [ ((super .|. shift, key), windows $ Stack.shift workspace)
-  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F9] ]
+  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F12] ]
   ++
   [ ((super, key), focusNth index)
   | (index, key) <- zip [0 ..] [xK_1 .. xK_9] ]
