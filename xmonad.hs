@@ -19,12 +19,12 @@ import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.UrgencyHook
+import XMonad.Layout.Accordion
 import XMonad.Layout.Grid
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
-import XMonad.Layout.Tabbed
 import qualified XMonad.Prompt as Prompt
 import XMonad.Prompt.Shell
 import qualified XMonad.StackSet as Stack
@@ -151,11 +151,11 @@ compileWithTheme theme templateFile outputFile = do
 -- Layouts --
 -------------
 
-grid = named "G" $ Grid
 tall = named "T" $ Tall 1 (1/2) (1/2)
 mirror = named "M" $ Mirror tall
+accordion = named "A" $ Accordion
 full = named "F" $ Full
-layoutHook' = smartBorders $ grid ||| tall ||| mirror ||| full
+layoutHook' = smartBorders $ tall ||| mirror ||| accordion ||| full
 
 
 -- Prompt --
@@ -204,4 +204,4 @@ main = do
   let templateFile = "/home/me/.xmonad/xmobarrc"
   let outputFile = "/home/me/.xmobarrc"
   compileWithTheme theme templateFile outputFile
-  xmonad . withUrgencyHook NoUrgencyHook =<< xmobar config'
+  xmonad. withUrgencyHook NoUrgencyHook =<< xmobar config'
