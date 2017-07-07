@@ -155,7 +155,7 @@ tall = named "T" $ Tall 1 (1/2) (1/2)
 mirror = named "M" $ Mirror tall
 accordion = named "A" $ Accordion
 full = named "F" $ Full
-layoutHook' = smartBorders $ tall ||| mirror ||| accordion ||| full
+layoutHook' = smartBorders $ tall ||| mirror ||| full ||| accordion
 
 
 -- Prompt --
