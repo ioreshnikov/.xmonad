@@ -24,11 +24,13 @@ import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.UrgencyHook
+import XMonad.Layout.Gaps
 import XMonad.Layout.Grid
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
+import XMonad.Layout.Spacing
 import XMonad.Layout.Tabbed
 import qualified XMonad.Prompt as Prompt
 import XMonad.Prompt.Shell
@@ -196,7 +198,7 @@ compileWithTheme theme templateFile outputFile = do
 tabbedConfig = def
   { activeColor = bg . active $ theme
   , activeTextColor = fg . active $ theme
-  , activeBorderColor = bd . active $ theme
+  , activeBorderColor = bg . active $ theme
   , inactiveColor = bg . normal $ theme
   , inactiveTextColor = fg . normal $ theme
   , inactiveBorderColor = bg . normal $ theme
@@ -207,12 +209,26 @@ tabbedConfig = def
   , fontName = font $ theme
   }
 
-tall = named "Tall" $ Tall 1 (1/2) (1/2)
-mirror = named "Mirror" $ Mirror tall
-grid = named "Grid" $ Grid
-tabbed' = named "Tabbed" $ tabbed shrinkText tabbedConfig
+halfunit = fromIntegral $ (unit theme) `div` 2
+quarterunit = fromIntegral $ (unit theme) `div` 4
+
+tall =
+  named "Tall"
+  . spacingWithEdge quarterunit
+  $ Tall 1 (1/2) (1/2)
+mirror =
+  named "Mirror"
+  $ Mirror tall
+grid =
+  named "Grid"
+  . spacingWithEdge quarterunit
+  $ Grid
+tabbed' =
+  named "Tabbed"
+  . gaps [(U, halfunit), (R, halfunit), (D, halfunit), (L, halfunit)]
+  $ tabbed shrinkText tabbedConfig
 full = named "Full" $ Full
-layoutHook' = smartBorders $ tall ||| mirror ||| full ||| grid ||| tabbed'
+layoutHook' = smartBorders $ tall ||| mirror ||| grid ||| tabbed' ||| full
 
 
 -- Prompt --
