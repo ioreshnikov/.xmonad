@@ -140,7 +140,12 @@ keys' config = Data.Map.fromList $
 --------------------------------
 
 numScreens = 2
-workspaces' = Workscreen.expandWorkspace numScreens . map (:[]) $ ['α' .. 'ω']
+workspaces' =
+  Workscreen.expandWorkspace numScreens
+  [ "ω", "ξ", "ε", "τ"
+  , "α", "β", "γ", "δ"
+  , "ζ", "η", "θ", "ι"
+  ]
 
 fancySubscripts workspace = workspace'
   where
