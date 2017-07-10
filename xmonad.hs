@@ -28,7 +28,6 @@ import XMonad.Layout.Gaps
 import XMonad.Layout.Grid
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
-import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
 import XMonad.Layout.PerWorkspace
 import XMonad.Layout.Spacing
@@ -216,23 +215,13 @@ tabbedConfig = def
 halfunit = fromIntegral $ (unit theme) `div` 2
 quarterunit = fromIntegral $ (unit theme) `div` 4
 
-tall =
-  named "Tall"
-  . spacingWithEdge quarterunit
-  $ Tall 1 (1/2) (1/2)
-mirror =
-  named "Mirror"
-  $ Mirror tall
-grid =
-  named "Grid"
-  . spacingWithEdge quarterunit
-  $ Grid
-tabbed' =
-  named "Tabbed"
-  . gaps [(U, halfunit), (R, halfunit), (D, halfunit), (L, halfunit)]
-  $ tabbed shrinkText tabbedConfig
-full = named "Full" $ Full
-layoutHook' = smartBorders $ tall ||| mirror ||| grid ||| tabbed' ||| full
+full = Full
+tall = spacingWithEdge quarterunit $ Tall 1 (1/8) (1/2)
+grid = spacingWithEdge quarterunit $ Grid
+tabbed' = gaps spec $ tabbed shrinkText tabbedConfig
+    where spec = [(U, halfunit), (R, halfunit), (D, halfunit), (L, halfunit)]
+
+layoutHook' = smartBorders $ tall ||| grid ||| tabbed' ||| full
 
 
 -- Prompt --
