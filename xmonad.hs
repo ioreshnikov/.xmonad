@@ -5,7 +5,9 @@
 -------------
 
 -- Standard library --
+import Data.Char
 import Data.Data
+import Data.List
 import qualified Data.Map
 import System.Exit
 
@@ -17,17 +19,20 @@ import Text.StringTemplate.GenericStandard
 -- XMonad --
 import XMonad hiding (Font)
 import XMonad.Actions.FocusNth
+import qualified XMonad.Actions.Workscreen as Workscreen
 import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.UrgencyHook
-import XMonad.Layout.Accordion
+import XMonad.Layout.Gaps
 import XMonad.Layout.Grid
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
 import XMonad.Layout.PerWorkspace
+import XMonad.Layout.Spacing
+import XMonad.Layout.Tabbed
 import qualified XMonad.Prompt as Prompt
 import XMonad.Prompt.Shell
 import qualified XMonad.StackSet as Stack
@@ -90,6 +95,8 @@ volumeToggle = spawn "amixer -D pulse set Master toggle"
 brightnessUp = spawn "xbacklight + 10"
 brightnessDown = spawn "xbacklight - 10"
 
+lockscreen = spawn "gnome-screensaver-command --lock"
+
 
 -- Key bindings --
 ------------------
@@ -113,11 +120,11 @@ keys' config = Data.Map.fromList $
   , ((super .|. shift, xK_Escape), exit)
   ]
   ++
-  [ ((super, key), windows $ Stack.greedyView workspace)
-  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F12] ]
+  [ ((super, key), Workscreen.viewWorkscreen workscreen)
+  | (workscreen, key) <- zip [0 ..] [xK_F1 .. xK_F12] ]
   ++
-  [ ((super .|. shift, key), windows $ Stack.shift workspace)
-  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F12] ]
+  [ ((super .|. shift, key), Workscreen.shiftToWorkscreen workscreen)
+  | (workscreen, key) <- zip [0 ..] [xK_F1 .. xK_F12] ]
   ++
   [ ((super, key), focusNth index)
   | (index, key) <- zip [0 ..] [xK_1 .. xK_9] ]
@@ -128,16 +135,36 @@ keys' config = Data.Map.fromList $
   ++
   [ ((0, xF86XK_AudioLowerVolume), volumeDown)
   , ((0, xF86XK_AudioRaiseVolume), volumeUp)
-  , ((0, xF86XK_AudioMute), volumeToggle) ]
+  , ((0, xF86XK_AudioMute), volumeToggle)
+  , ((super, xK_Page_Down), volumeDown)
+  , ((super, xK_Page_Up), volumeUp)
+  , ((super, xK_End), volumeToggle) ]
   ++
   [ ((0, xF86XK_MonBrightnessDown), brightnessDown)
   , ((0, xF86XK_MonBrightnessUp), brightnessUp) ]
+  ++
+  [ ((super .|. shift, xK_l), lockscreen)]
 
 
 -- Workspaces and workscreens --
 --------------------------------
 
-workspaces' = map (:[]) ['α' .. 'ω']
+numScreens = 2
+workspaces' =
+  Workscreen.expandWorkspace numScreens
+  [ "ω", "ξ", "ε", "τ"
+  , "α", "β", "γ", "δ"
+  , "ζ", "η", "θ", "ι"
+  ]
+
+fancySubscripts workspace = workspace'
+  where
+    offset = 0x2080
+    underscore = \c -> c == '_'
+    name = takeWhile (not . underscore) workspace
+    index = tail . dropWhile (not . underscore) $ workspace
+    subscript = chr . (+ offset) . read $ index
+    workspace' = name ++ [subscript]
 
 
 -- XMobar --
@@ -145,15 +172,17 @@ workspaces' = map (:[]) ['α' .. 'ω']
 
 -- Pretty printer --
 makePrettyPrinter color = def
-  { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . dblpad
-  , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . dblpad
-  , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . dblpad
+  { ppCurrent = color (bg . active $ theme) (fg . active $ theme) . un
+  , ppVisible = color (fg . active $ theme) (bg . active $ theme) . un
+  , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . un
+  , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . un
   , ppWsSep = ""
-  , ppSep = ""
+  , ppSep = "    "
   , ppTitle = const ""
-  , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme) . dblpad
+  , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme)
   }
-  where dblpad = pad . pad
+  where
+    un = pad . fancySubscripts
 
 prettyPrinter = makePrettyPrinter xmobarColor
 toggleStruts = const (super, xK_b)
@@ -170,11 +199,40 @@ compileWithTheme theme templateFile outputFile = do
 -- Layouts --
 -------------
 
-tall = named "T" $ Tall 1 (1/2) (1/2)
-mirror = named "M" $ Mirror tall
-accordion = named "A" $ Accordion
-full = named "F" $ Full
-layoutHook' = smartBorders $ tall ||| mirror ||| full ||| accordion
+tabbedConfig = def
+  { activeColor = bg . active $ theme
+  , activeTextColor = fg . active $ theme
+  , activeBorderColor = bg . active $ theme
+  , inactiveColor = bg . normal $ theme
+  , inactiveTextColor = fg . normal $ theme
+  , inactiveBorderColor = bg . normal $ theme
+  , urgentColor = bg . urgent $ theme
+  , urgentTextColor = fg . urgent $ theme
+  , urgentBorderColor = bd . urgent $ theme
+  , decoHeight = fromIntegral . unit $ theme
+  , fontName = font $ theme
+  }
+
+halfunit = fromIntegral $ (unit theme) `div` 2
+quarterunit = fromIntegral $ (unit theme) `div` 4
+
+tall =
+  named "Tall"
+  . spacingWithEdge quarterunit
+  $ Tall 1 (1/2) (1/2)
+mirror =
+  named "Mirror"
+  $ Mirror tall
+grid =
+  named "Grid"
+  . spacingWithEdge quarterunit
+  $ Grid
+tabbed' =
+  named "Tabbed"
+  . gaps [(U, halfunit), (R, halfunit), (D, halfunit), (L, halfunit)]
+  $ tabbed shrinkText tabbedConfig
+full = named "Full" $ Full
+layoutHook' = smartBorders $ tall ||| mirror ||| grid ||| tabbed' ||| full
 
 
 -- Prompt --
@@ -201,6 +259,7 @@ manageHook' = composeAll
   , className =? "Gimp" --> doFloat
   , className =? "Plugin-container" --> doFloat
   , className =? "Gnuplot_qt" --> doFloat
+  , className =? "VirtualBox" --> doFloat
   , isFullscreen --> doFullFloat
   ]
 
@@ -217,12 +276,21 @@ withUrgencyHook' =
 -- Config and startup --
 ------------------------
 
+--  Startup --
+startupHook' = do
+  let workscreenConfig = Workscreen.fromWorkspace numScreens workspaces'
+  Workscreen.configWorkscreen workscreenConfig
+  return ()
+
+
+-- Config --
 config' = def
   { modMask = super
   , workspaces = workspaces'
   , keys = keys'
   , layoutHook = layoutHook'
   , manageHook = manageHook'
+  , startupHook = startupHook'
   , normalBorderColor = bd . normal $ theme
   , focusedBorderColor = bd . active $ theme
   }
