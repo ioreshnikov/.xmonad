@@ -5,7 +5,9 @@
 -------------
 
 -- Standard library --
+import Data.Char
 import Data.Data
+import Data.List
 import qualified Data.Map
 import System.Exit
 
@@ -17,6 +19,7 @@ import Text.StringTemplate.GenericStandard
 -- XMonad --
 import XMonad hiding (Font)
 import XMonad.Actions.FocusNth
+import qualified XMonad.Actions.Workscreen as Workscreen
 import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
@@ -112,11 +115,11 @@ keys' config = Data.Map.fromList $
   , ((super .|. shift, xK_Escape), exit)
   ]
   ++
-  [ ((super, key), windows $ Stack.greedyView workspace)
-  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F12] ]
+  [ ((super, key), Workscreen.viewWorkscreen workscreen)
+  | (workscreen, key) <- zip [0 ..] [xK_F1 .. xK_F12] ]
   ++
-  [ ((super .|. shift, key), windows $ Stack.shift workspace)
-  | (workspace, key) <- zip (workspaces config) [xK_F1 .. xK_F12] ]
+  [ ((super .|. shift, key), Workscreen.shiftToWorkscreen workscreen)
+  | (workscreen, key) <- zip [0 ..] [xK_F1 .. xK_F12] ]
   ++
   [ ((super, key), focusNth index)
   | (index, key) <- zip [0 ..] [xK_1 .. xK_9] ]
@@ -136,7 +139,17 @@ keys' config = Data.Map.fromList $
 -- Workspaces and workscreens --
 --------------------------------
 
-workspaces' = map (:[]) ['α' .. 'ω']
+numScreens = 2
+workspaces' = Workscreen.expandWorkspace numScreens . map (:[]) $ ['α' .. 'ω']
+
+fancySubscripts workspace = workspace'
+  where
+    offset = 0x2080
+    underscore = \c -> c == '_'
+    name = takeWhile (not . underscore) workspace
+    index = tail . dropWhile (not . underscore) $ workspace
+    subscript = chr . (+ offset) . read $ index
+    workspace' = name ++ [subscript]
 
 
 -- XMobar --
@@ -144,15 +157,17 @@ workspaces' = map (:[]) ['α' .. 'ω']
 
 -- Pretty printer --
 makePrettyPrinter color = def
-  { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . dblpad
-  , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . dblpad
-  , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . dblpad
+  { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . un
+  , ppVisible = color (fg . normal $ theme) (bg . normal $ theme) . un
+  , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . un
+  , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . un
   , ppWsSep = ""
-  , ppSep = ""
+  , ppSep = "    "
   , ppTitle = const ""
-  , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme) . dblpad
+  , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme)
   }
-  where dblpad = pad . pad
+  where
+    un = pad . fancySubscripts
 
 prettyPrinter = makePrettyPrinter xmobarColor
 toggleStruts = const (super, xK_b)
@@ -204,8 +219,17 @@ manageHook' = composeAll
   ]
 
 
--- Config and startup --
-------------------------
+--  Startup --
+--------------
+
+startupHook' = do
+  let workscreenConfig = Workscreen.fromWorkspace numScreens workspaces'
+  Workscreen.configWorkscreen workscreenConfig
+  return ()
+
+
+-- Config --
+------------
 
 config' = def
   { modMask = super
@@ -213,6 +237,7 @@ config' = def
   , keys = keys'
   , layoutHook = layoutHook'
   , manageHook = manageHook'
+  , startupHook = startupHook'
   , normalBorderColor = bd . normal $ theme
   , focusedBorderColor = bd . active $ theme
   }
