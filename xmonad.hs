@@ -215,6 +215,7 @@ manageHook' = composeAll
   , className =? "Gimp" --> doFloat
   , className =? "Plugin-container" --> doFloat
   , className =? "Gnuplot_qt" --> doFloat
+  , className =? "VirtualBox" --> doFloat
   , isFullscreen --> doFullFloat
   ]
 
