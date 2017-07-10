@@ -137,7 +137,7 @@ keys' config = Data.Map.fromList $
   [ ((0, xF86XK_MonBrightnessDown), brightnessDown)
   , ((0, xF86XK_MonBrightnessUp), brightnessUp) ]
   ++
-  [ ((super, xK_l), lockscreen)]
+  [ ((super .|. shift, xK_l), lockscreen)]
 
 
 -- Workspaces and workscreens --
