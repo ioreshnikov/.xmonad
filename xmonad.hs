@@ -30,6 +30,7 @@ import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.NoBorders
 import XMonad.Layout.PerWorkspace
+import XMonad.Layout.Renamed
 import XMonad.Layout.Spacing
 import XMonad.Layout.Tabbed
 import qualified XMonad.Prompt as Prompt
@@ -176,7 +177,7 @@ makePrettyPrinter color = def
   , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . un
   , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . un
   , ppWsSep = ""
-  , ppSep = "    "
+  , ppSep = "  "
   , ppTitle = const ""
   , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme)
   }
@@ -215,10 +216,21 @@ tabbedConfig = def
 halfunit = fromIntegral $ (unit theme) `div` 2
 quarterunit = fromIntegral $ (unit theme) `div` 4
 
-full = Full
-tall = spacingWithEdge quarterunit $ Tall 1 (1/8) (1/2)
-grid = spacingWithEdge quarterunit $ Grid
-tabbed' = gaps spec $ tabbed shrinkText tabbedConfig
+full =
+  renamed [Replace "Full"]
+  $ Full
+tall =
+  renamed [Replace "Tall"]
+  . spacingWithEdge quarterunit
+  $ Tall 1 (1/16) (1/2)
+grid =
+  renamed [Replace "Grid"]
+  . spacingWithEdge quarterunit
+  $ Grid
+tabbed' =
+  renamed [Replace "Tbbd"]
+  . gaps spec
+  $ tabbed shrinkText tabbedConfig
     where spec = [(U, halfunit), (R, halfunit), (D, halfunit), (L, halfunit)]
 
 layoutHook' = smartBorders $ tall ||| grid ||| tabbed' ||| full
