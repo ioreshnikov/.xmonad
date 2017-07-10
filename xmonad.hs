@@ -27,6 +27,7 @@ import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
+import XMonad.Layout.PerWorkspace
 import qualified XMonad.Prompt as Prompt
 import XMonad.Prompt.Shell
 import qualified XMonad.StackSet as Stack
