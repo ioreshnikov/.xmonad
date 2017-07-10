@@ -134,7 +134,10 @@ keys' config = Data.Map.fromList $
   ++
   [ ((0, xF86XK_AudioLowerVolume), volumeDown)
   , ((0, xF86XK_AudioRaiseVolume), volumeUp)
-  , ((0, xF86XK_AudioMute), volumeToggle) ]
+  , ((0, xF86XK_AudioMute), volumeToggle)
+  , ((super, xK_Page_Down), volumeDown)
+  , ((super, xK_Page_Up), volumeUp)
+  , ((super, xK_End), volumeToggle) ]
   ++
   [ ((0, xF86XK_MonBrightnessDown), brightnessDown)
   , ((0, xF86XK_MonBrightnessUp), brightnessUp) ]
