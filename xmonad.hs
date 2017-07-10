@@ -30,6 +30,7 @@ import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
 import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
+import XMonad.Layout.Tabbed
 import qualified XMonad.Prompt as Prompt
 import XMonad.Prompt.Shell
 import qualified XMonad.StackSet as Stack
@@ -189,11 +190,26 @@ compileWithTheme theme templateFile outputFile = do
 -- Layouts --
 -------------
 
-tall = named "T" $ Tall 1 (1/2) (1/2)
-mirror = named "M" $ Mirror tall
-accordion = named "A" $ Accordion
-full = named "F" $ Full
-layoutHook' = smartBorders $ tall ||| mirror ||| full ||| accordion
+tabbedConfig = def
+  { activeColor = bg . active $ theme
+  , activeTextColor = fg . active $ theme
+  , activeBorderColor = bd . active $ theme
+  , inactiveColor = bg . normal $ theme
+  , inactiveTextColor = fg . normal $ theme
+  , inactiveBorderColor = bg . normal $ theme
+  , urgentColor = bg . urgent $ theme
+  , urgentTextColor = fg . urgent $ theme
+  , urgentBorderColor = bd . urgent $ theme
+  , decoHeight = fromIntegral . unit $ theme
+  , fontName = font $ theme
+  }
+
+tall = named "Tall" $ Tall 1 (1/2) (1/2)
+mirror = named "Mirror" $ Mirror tall
+accordion = named "Accordion" $ Accordion
+tabbed' = named "Tabbed" $ tabbed shrinkText tabbedConfig
+full = named "Full" $ Full
+layoutHook' = smartBorders $ tall ||| mirror ||| full ||| accordion ||| tabbed'
 
 
 -- Prompt --
