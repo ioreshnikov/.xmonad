@@ -205,6 +205,15 @@ manageHook' = composeAll
   ]
 
 
+-- Urgency --
+-------------
+
+withUrgencyHook' =
+  withUrgencyHookC
+    BorderUrgencyHook { urgencyBorderColor = bd . urgent $ theme }
+    urgencyConfig { suppressWhen = Focused }
+
+
 -- Config and startup --
 ------------------------
 
@@ -223,4 +232,4 @@ main = do
   let templateFile = "/home/me/.xmonad/xmobarrc"
   let outputFile = "/home/me/.xmobarrc"
   compileWithTheme theme templateFile outputFile
-  xmonad. withUrgencyHook NoUrgencyHook =<< xmobar config'
+  xmonad . withUrgencyHook' =<< xmobar config'
