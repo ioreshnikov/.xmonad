@@ -24,7 +24,6 @@ import XMonad.Hooks.DynamicLog hiding (xmobar)
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.UrgencyHook
-import XMonad.Layout.Accordion
 import XMonad.Layout.Grid
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
@@ -210,10 +209,10 @@ tabbedConfig = def
 
 tall = named "Tall" $ Tall 1 (1/2) (1/2)
 mirror = named "Mirror" $ Mirror tall
-accordion = named "Accordion" $ Accordion
+grid = named "Grid" $ Grid
 tabbed' = named "Tabbed" $ tabbed shrinkText tabbedConfig
 full = named "Full" $ Full
-layoutHook' = smartBorders $ tall ||| mirror ||| full ||| accordion ||| tabbed'
+layoutHook' = smartBorders $ tall ||| mirror ||| full ||| grid ||| tabbed'
 
 
 -- Prompt --
