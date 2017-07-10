@@ -93,6 +93,8 @@ volumeToggle = spawn "amixer -D pulse set Master toggle"
 brightnessUp = spawn "xbacklight + 10"
 brightnessDown = spawn "xbacklight - 10"
 
+lockscreen = spawn "gnome-screensaver-command --lock"
+
 
 -- Key bindings --
 ------------------
@@ -135,6 +137,8 @@ keys' config = Data.Map.fromList $
   ++
   [ ((0, xF86XK_MonBrightnessDown), brightnessDown)
   , ((0, xF86XK_MonBrightnessUp), brightnessUp) ]
+  ++
+  [ ((super, xK_l), lockscreen)]
 
 
 -- Workspaces and workscreens --
