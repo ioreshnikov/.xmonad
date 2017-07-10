@@ -162,8 +162,8 @@ fancySubscripts workspace = workspace'
 
 -- Pretty printer --
 makePrettyPrinter color = def
-  { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . un
-  , ppVisible = color (fg . normal $ theme) (bg . normal $ theme) . un
+  { ppCurrent = color (bg . active $ theme) (fg . active $ theme) . un
+  , ppVisible = color (fg . active $ theme) (bg . active $ theme) . un
   , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . un
   , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . un
   , ppWsSep = ""
