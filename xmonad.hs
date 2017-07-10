@@ -248,4 +248,4 @@ main = do
   let templateFile = "/home/me/.xmonad/xmobarrc"
   let outputFile = "/home/me/.xmobarrc"
   compileWithTheme theme templateFile outputFile
-  xmonad. withUrgencyHook NoUrgencyHook =<< xmobar config'
+  xmonad . withUrgencyHook NoUrgencyHook =<< xmobar config'
