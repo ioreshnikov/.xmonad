@@ -28,8 +28,9 @@ import XMonad.Layout.Gaps
 import XMonad.Layout.Grid
 import XMonad.Layout.MultiToggle
 import XMonad.Layout.MultiToggle.Instances
-import XMonad.Layout.Named
 import XMonad.Layout.NoBorders
+import XMonad.Layout.PerWorkspace
+import XMonad.Layout.Renamed
 import XMonad.Layout.Spacing
 import XMonad.Layout.Tabbed
 import qualified XMonad.Prompt as Prompt
@@ -176,7 +177,7 @@ makePrettyPrinter color = def
   , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . un
   , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . un
   , ppWsSep = ""
-  , ppSep = "    "
+  , ppSep = "  "
   , ppTitle = const ""
   , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme)
   }
@@ -215,23 +216,24 @@ tabbedConfig = def
 halfunit = fromIntegral $ (unit theme) `div` 2
 quarterunit = fromIntegral $ (unit theme) `div` 4
 
+full =
+  renamed [Replace "Full"]
+  $ Full
 tall =
-  named "Tall"
+  renamed [Replace "Tall"]
   . spacingWithEdge quarterunit
-  $ Tall 1 (1/2) (1/2)
-mirror =
-  named "Mirror"
-  $ Mirror tall
+  $ Tall 1 (1/16) (1/2)
 grid =
-  named "Grid"
+  renamed [Replace "Grid"]
   . spacingWithEdge quarterunit
   $ Grid
 tabbed' =
-  named "Tabbed"
-  . gaps [(U, halfunit), (R, halfunit), (D, halfunit), (L, halfunit)]
+  renamed [Replace "Tbbd"]
+  . gaps spec
   $ tabbed shrinkText tabbedConfig
-full = named "Full" $ Full
-layoutHook' = smartBorders $ tall ||| mirror ||| grid ||| tabbed' ||| full
+    where spec = [(U, halfunit), (R, halfunit), (D, halfunit), (L, halfunit)]
+
+layoutHook' = smartBorders $ tall ||| grid ||| tabbed' ||| full
 
 
 -- Prompt --
@@ -263,9 +265,19 @@ manageHook' = composeAll
   ]
 
 
---  Startup --
---------------
+-- Urgency --
+-------------
 
+withUrgencyHook' =
+  withUrgencyHookC
+    BorderUrgencyHook { urgencyBorderColor = bd . urgent $ theme }
+    urgencyConfig { suppressWhen = Focused }
+
+
+-- Config and startup --
+------------------------
+
+--  Startup --
 startupHook' = do
   let workscreenConfig = Workscreen.fromWorkspace numScreens workspaces'
   Workscreen.configWorkscreen workscreenConfig
@@ -273,8 +285,6 @@ startupHook' = do
 
 
 -- Config --
-------------
-
 config' = def
   { modMask = super
   , workspaces = workspaces'
@@ -291,4 +301,4 @@ main = do
   let templateFile = "/home/me/.xmonad/xmobarrc"
   let outputFile = "/home/me/.xmobarrc"
   compileWithTheme theme templateFile outputFile
-  xmonad . withUrgencyHook NoUrgencyHook =<< xmobar config'
+  xmonad . withUrgencyHook' =<< xmobar config'
