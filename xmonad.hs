@@ -157,10 +157,10 @@ keys' config = Data.Map.fromList $
 numScreens = 2
 workspaces' =
   Workscreen.expandWorkspace numScreens
-  [ "ω", "ξ", "ε", "τ"
-  , "α", "β", "γ", "δ"
-  , "ζ", "η", "θ", "ι"
-  ]
+  $ [ "ω", "ξ", "α", "β"  -- primary   workspaces (web, emacs, and two auxiliary)
+    , "Ω", "Ξ", "γ", "δ"  -- secondary workspaces (again, web, emacs and two auxiliary)
+    , "ε", "ζ", "ν", "θ"  -- four auxiliary workspaces
+    ]
 
 fancySubscripts workspace = workspace'
   where
