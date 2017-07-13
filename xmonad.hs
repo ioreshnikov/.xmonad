@@ -18,6 +18,7 @@ import Text.StringTemplate.GenericStandard
 
 -- XMonad --
 import XMonad hiding (Font)
+import XMonad.Actions.CopyWindow
 import XMonad.Actions.FocusNth
 import qualified XMonad.Actions.Workscreen as Workscreen
 import XMonad.Hooks.DynamicLog hiding (xmobar)
@@ -144,6 +145,10 @@ keys' config = Data.Map.fromList $
   , ((0, xF86XK_MonBrightnessUp), brightnessUp) ]
   ++
   [ ((super .|. shift, xK_l), lockscreen)]
+  ++
+  [ ((super, xK_p), windows copyToAll),
+    ((super .|. shift, xK_p), killAllOtherCopies)
+  ]
 
 
 -- Workspaces and workscreens --
