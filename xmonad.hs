@@ -19,6 +19,7 @@ import Text.StringTemplate.GenericStandard
 -- XMonad --
 import XMonad hiding (Font)
 import XMonad.Actions.CopyWindow
+import XMonad.Actions.FloatKeys
 import XMonad.Actions.FocusNth
 import qualified XMonad.Actions.Workscreen as Workscreen
 import XMonad.Hooks.DynamicLog hiding (xmobar)
@@ -149,6 +150,19 @@ keys' config = Data.Map.fromList $
   [ ((super, xK_p), windows copyToAll),
     ((super .|. shift, xK_p), killAllOtherCopies)
   ]
+  ++
+  [ ((super, xK_Left), withFocused (keysResizeWindow (-dx, 0) (0, 0)))
+  , ((super, xK_Up), withFocused (keysResizeWindow (0, -dy) (0, 0)))
+  , ((super, xK_Right), withFocused (keysResizeWindow (dx, 0) (0, 0)))
+  , ((super, xK_Down), withFocused (keysResizeWindow (0, dy) (0, 0)))
+  , ((super .|. shift, xK_Left), withFocused (keysMoveWindow (-dx, 0)))
+  , ((super .|. shift, xK_Up), withFocused (keysMoveWindow (0, -dy)))
+  , ((super .|. shift, xK_Right), withFocused (keysMoveWindow (dx, 0)))
+  , ((super .|. shift, xK_Down), withFocused (keysMoveWindow (0, dy)))
+  ]
+  where
+    dx = fromIntegral . unit $ theme
+    dy = dx
 
 
 -- Workspaces and workscreens --
