@@ -23,6 +23,7 @@ import XMonad.Actions.FloatKeys
 import XMonad.Actions.FocusNth
 import qualified XMonad.Actions.Workscreen as Workscreen
 import XMonad.Hooks.DynamicLog hiding (xmobar)
+import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.UrgencyHook
@@ -68,7 +69,7 @@ data XMonadTheme = XMonadTheme
   } deriving Data
 
 twilightDarkTheme = XMonadTheme
-  { font = "xft:Ubuntu Mono:size=10"
+  { font = "xft:CMU Typewriter Text:size=10"
   , unit = 32
   , normal = Colors "#dcdddd" "#181d23" "#313c4d"
   , active = Colors "#00959e" "#1b333e" "#00959e"
@@ -98,6 +99,9 @@ brightnessUp = spawn "xbacklight + 10"
 brightnessDown = spawn "xbacklight - 10"
 
 lockscreen = spawn "gnome-screensaver-command --lock"
+
+flipScreen = spawn "xrandr --output eDP1 --rotate inverted"
+unflipScreen = spawn "xrandr --output eDP1 --rotate normal"
 
 
 -- Key bindings --
@@ -145,7 +149,7 @@ keys' config = Data.Map.fromList $
   [ ((0, xF86XK_MonBrightnessDown), brightnessDown)
   , ((0, xF86XK_MonBrightnessUp), brightnessUp) ]
   ++
-  [ ((super .|. shift, xK_l), lockscreen)]
+  [ ((super .|. shift, xK_l), lockscreen) ]
   ++
   [ ((super, xK_p), windows copyToAll),
     ((super .|. shift, xK_p), killAllOtherCopies)
@@ -160,6 +164,10 @@ keys' config = Data.Map.fromList $
   , ((super .|. shift, xK_Right), withFocused (keysMoveWindow (dx, 0)))
   , ((super .|. shift, xK_Down), withFocused (keysMoveWindow (0, dy)))
   ]
+  ++
+  [ ((super, xK_i), flipScreen)
+  , ((super .|. shift, xK_i), unflipScreen)
+  ]
   where
     dx = fromIntegral . unit $ theme
     dy = dx
@@ -168,12 +176,11 @@ keys' config = Data.Map.fromList $
 -- Workspaces and workscreens --
 --------------------------------
 
-numScreens = 2
+numScreens = 1
 workspaces' =
   Workscreen.expandWorkspace numScreens
-  $ [ "ω", "ξ", "α", "β"  -- primary   workspaces (web, emacs, and two auxiliary)
-    , "Ω", "Ξ", "γ", "δ"  -- secondary workspaces (again, web, emacs and two auxiliary)
-    , "ε", "ζ", "ν", "θ"  -- four auxiliary workspaces
+  $ [ "ω", "ξ", "α", "β"  -- primary workspaces (web, emacs, and two auxiliary)
+    , "γ", "δ", "ε", "ζ"  -- four auxiliary workspaces
     ]
 
 fancySubscripts workspace = workspace'
@@ -183,7 +190,10 @@ fancySubscripts workspace = workspace'
     name = takeWhile (not . underscore) workspace
     index = tail . dropWhile (not . underscore) $ workspace
     subscript = chr . (+ offset) . read $ index
-    workspace' = name ++ [subscript]
+    workspace' =
+        if numScreens == 1
+        then name
+        else name ++ [subscript]
 
 
 -- XMobar --
@@ -201,7 +211,7 @@ makePrettyPrinter color = def
   , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme)
   }
   where
-    un = pad . fancySubscripts
+    un = pad . pad . fancySubscripts
 
 prettyPrinter = makePrettyPrinter xmobarColor
 toggleStruts = const (super, xK_b)
@@ -232,8 +242,10 @@ tabbedConfig = def
   , fontName = font $ theme
   }
 
-halfunit = fromIntegral $ (unit theme) `div` 2
-quarterunit = fromIntegral $ (unit theme) `div` 4
+-- halfunit = fromIntegral $ (unit theme) `div` 2
+-- quarterunit = fromIntegral $ (unit theme) `div` 4
+halfunit = 0
+quarterunit = 0
 
 full =
   renamed [Replace "Full"]
@@ -310,6 +322,7 @@ config' = def
   , keys = keys'
   , layoutHook = layoutHook'
   , manageHook = manageHook'
+  , handleEventHook = handleEventHook def <+> fullscreenEventHook
   , startupHook = startupHook'
   , normalBorderColor = bd . normal $ theme
   , focusedBorderColor = bd . active $ theme
