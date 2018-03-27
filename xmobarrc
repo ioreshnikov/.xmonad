@@ -1,29 +1,24 @@
 Config
   { font = "$theme.font$"
-  , additionalFonts = []
-  , position = TopSize C 100 $theme.unit$
+  , additionalFonts = [
+    "xft:Font Awesome 5 Free Solid:size=10.5",
+    "xft:Font Awesome 5 Free:size=10.5",
+    "xft:Font Awesome 5 Brands:size=10.5"
+  ]
+  , position = BottomSize C 100 $theme.unit$
   , bgColor = "$theme.normal.background$"
   , fgColor = "$theme.normal.foreground$"
-  , border = BottomB
+  , border = TopB
   , borderColor = "$theme.normal.border$"
   , commands =
     [ Run StdinReader
-    , Run Battery
-      [ "--template", "<acstatus>"
-      , "--Low", "20"
-      , "--High", "80"
-      , "--low", "$theme.urgent.foreground$,$theme.urgent.background$"
-      , "--normal", "$theme.normal.foreground$,$theme.normal.background$"
-      , "--high", "$theme.hidden.foreground$,$theme.hidden.background$"
-      , "--"
-      , "-o", "<fc=$theme.hidden.foreground$,$theme.hidden.background$><left>% (<timeleft>)</fc>"
-      , "-O", "<fc=$theme.hidden.foreground$,$theme.hidden.background$><left>% (<timeleft>)</fc>"
-      , "-i", ""
-      ] 50
-    , Run Date "%B %d, %A" "date" 10
-    , Run Date "%H:%M" "time" 10
+    , Run Com "/home/me/.xmonad/brightness.py"  [] "brightness" 10
+    , Run Com "/home/me/.xmonad/volume.py"      [] "volume"     10
+    , Run Com "/home/me/.xmonad/network.py"     [] "network"    600
+    , Run Com "/home/me/.xmonad/battery.py"     [] "battery"    600
+    , Run Date "%A, %H:%M" "time" 10
     ]
   , sepChar  = "%"
   , alignSep = "}{"
-  , template = "  %battery% }%StdinReader%{ <fc=$theme.hidden.foreground$,$theme.hidden.background$>%date%</fc> %time%  "
+  , template = "} %StdinReader% { %brightness%      %volume%      %network%      %battery%      %time%    "
   }

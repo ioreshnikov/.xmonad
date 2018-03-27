@@ -19,6 +19,7 @@ import Text.StringTemplate.GenericStandard
 -- XMonad --
 import XMonad hiding (Font)
 import XMonad.Actions.CopyWindow
+import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.FloatKeys
 import XMonad.Actions.FocusNth
 import qualified XMonad.Actions.Workscreen as Workscreen
@@ -39,6 +40,7 @@ import XMonad.Layout.Tabbed
 import qualified XMonad.Prompt as Prompt
 import XMonad.Prompt.Shell
 import qualified XMonad.StackSet as Stack
+import XMonad.Util.SpawnOnce
 
 
 -- XMonad theme --
@@ -61,6 +63,7 @@ bd = border
 
 data XMonadTheme = XMonadTheme
   { font :: Font
+  , additionalFonts :: [Font]
   , unit :: Integer
   , normal :: Colors
   , active :: Colors
@@ -68,22 +71,22 @@ data XMonadTheme = XMonadTheme
   , urgent :: Colors
   } deriving Data
 
-twilightDarkTheme = XMonadTheme
-  { font = "xft:CMU Typewriter Text:size=10"
-  , unit = 32
-  , normal = Colors "#dcdddd" "#181d23" "#313c4d"
-  , active = Colors "#00959e" "#1b333e" "#00959e"
-  , hidden = Colors "#313c4d" "#181d23" "#181d23"
-  , urgent = Colors "#deae3e" "#2a2921" "#deae3e"
+arcTheme = XMonadTheme
+  { font = "xft:Futura BookC:style=bold:size=11"
+  , unit = 48
+  , normal = Colors "#ffffff" "#252a35" "#252a35"
+  , active = Colors "#ffffff" "#252a35" "#252a35"
+  , hidden = Colors "#666666" "#252a35" "#252a35"
+  , urgent = Colors "#a22921" "#252a35" "#252a35"
   }
 
-theme = twilightDarkTheme
+theme = arcTheme
 
 
 -- Custom commands --
 ---------------------
 
-terminal' = "xterm"
+terminal' = "gnome-terminal"
 recompile' = spawn "xmonad --recompile && xmonad --restart"
 exit = io exitSuccess
 
@@ -91,12 +94,12 @@ fullscreen = do
     sendMessage ToggleStruts
     sendMessage (Toggle FULL)
 
-volumeUp = spawn "amixer -M -D pulse set Master 5%+"
-volumeDown = spawn "amixer -M -D pulse set Master 5%-"
-volumeToggle = spawn "amixer -D pulse set Master toggle"
+volumeUp = spawn "pamixer -i 10"
+volumeDown = spawn "pamixer -d 10"
+volumeToggle = spawn "pamixer -t"
 
-brightnessUp = spawn "xbacklight + 10"
-brightnessDown = spawn "xbacklight - 10"
+brightnessUp = spawn "brightnessctl s 10%+"
+brightnessDown = spawn "brightnessctl s 10%-"
 
 lockscreen = spawn "gnome-screensaver-command --lock"
 
@@ -132,6 +135,8 @@ keys' config = Data.Map.fromList $
   [ ((super .|. shift, key), Workscreen.shiftToWorkscreen workscreen)
   | (workscreen, key) <- zip [0 ..] [xK_F1 .. xK_F12] ]
   ++
+  [ ((super, xK_Tab), cycleRecentWS [xK_Super_L] xK_Tab xK_Tab) ]
+  ++
   [ ((super, key), focusNth index)
   | (index, key) <- zip [0 ..] [xK_1 .. xK_9] ]
   ++
@@ -155,14 +160,14 @@ keys' config = Data.Map.fromList $
     ((super .|. shift, xK_p), killAllOtherCopies)
   ]
   ++
-  [ ((super, xK_Left), withFocused (keysResizeWindow (-dx, 0) (0, 0)))
-  , ((super, xK_Up), withFocused (keysResizeWindow (0, -dy) (0, 0)))
-  , ((super, xK_Right), withFocused (keysResizeWindow (dx, 0) (0, 0)))
-  , ((super, xK_Down), withFocused (keysResizeWindow (0, dy) (0, 0)))
-  , ((super .|. shift, xK_Left), withFocused (keysMoveWindow (-dx, 0)))
-  , ((super .|. shift, xK_Up), withFocused (keysMoveWindow (0, -dy)))
-  , ((super .|. shift, xK_Right), withFocused (keysMoveWindow (dx, 0)))
-  , ((super .|. shift, xK_Down), withFocused (keysMoveWindow (0, dy)))
+  [ ((super .|. shift, xK_Left), withFocused (keysResizeWindow (-dx, 0) (0, 0)))
+  , ((super .|. shift, xK_Up), withFocused (keysResizeWindow (0, -dy) (0, 0)))
+  , ((super .|. shift, xK_Right), withFocused (keysResizeWindow (dx, 0) (0, 0)))
+  , ((super .|. shift, xK_Down), withFocused (keysResizeWindow (0, dy) (0, 0)))
+  , ((super, xK_Left), withFocused (keysMoveWindow (-dx, 0)))
+  , ((super, xK_Up), withFocused (keysMoveWindow (0, -dy)))
+  , ((super, xK_Right), withFocused (keysMoveWindow (dx, 0)))
+  , ((super, xK_Down), withFocused (keysMoveWindow (0, dy)))
   ]
   ++
   [ ((super, xK_i), flipScreen)
@@ -178,10 +183,13 @@ keys' config = Data.Map.fromList $
 
 numScreens = 1
 workspaces' =
-  Workscreen.expandWorkspace numScreens
-  $ [ "ω", "ξ", "α", "β"  -- primary workspaces (web, emacs, and two auxiliary)
-    , "γ", "δ", "ε", "ζ"  -- four auxiliary workspaces
-    ]
+  [ "1  <fn=1>\xf14e</fn>"
+  , "2  <fn=1>\xf121</fn>"
+  , "3  <fn=1>\xf0c3</fn>"
+  , "4  <fn=1>\xf108</fn>"
+  , "5  <fn=1>\xf108</fn>"
+  , "6  <fn=1>\xf1d8</fn>"
+  ]
 
 fancySubscripts workspace = workspace'
   where
@@ -201,17 +209,18 @@ fancySubscripts workspace = workspace'
 
 -- Pretty printer --
 makePrettyPrinter color = def
-  { ppCurrent = color (bg . active $ theme) (fg . active $ theme) . un
-  , ppVisible = color (fg . active $ theme) (bg . active $ theme) . un
-  , ppHidden = color (fg . normal $ theme) (bg . normal $ theme) . un
+  { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . un
+  , ppVisible = color (fg . hidden $ theme) (bg . hidden $ theme) . un
+  , ppHidden = color (fg . hidden $ theme) (bg . hidden $ theme) . un
+  , ppHiddenNoWindows = color (fg . hidden $ theme) (bg . hidden $ theme) . un
   , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . un
-  , ppWsSep = ""
-  , ppSep = "  "
+  , ppWsSep = "    "
+  , ppSep = "      "
   , ppTitle = const ""
   , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme)
   }
   where
-    un = pad . pad . fancySubscripts
+    un = fancySubscripts
 
 prettyPrinter = makePrettyPrinter xmobarColor
 toggleStruts = const (super, xK_b)
@@ -232,15 +241,17 @@ tabbedConfig = def
   { activeColor = bg . active $ theme
   , activeTextColor = fg . active $ theme
   , activeBorderColor = bg . active $ theme
-  , inactiveColor = bg . normal $ theme
-  , inactiveTextColor = fg . normal $ theme
-  , inactiveBorderColor = bg . normal $ theme
+  , inactiveColor = bg . hidden $ theme
+  , inactiveTextColor = fg . hidden $ theme
+  , inactiveBorderColor = bg . hidden $ theme
   , urgentColor = bg . urgent $ theme
   , urgentTextColor = fg . urgent $ theme
   , urgentBorderColor = bd . urgent $ theme
-  , decoHeight = fromIntegral . unit $ theme
+  , decoHeight = fromIntegral $ threequarterunit
   , fontName = font $ theme
   }
+
+threequarterunit = fromIntegral . (* 3) $ (unit theme) `div` 4
 
 -- halfunit = fromIntegral $ (unit theme) `div` 2
 -- quarterunit = fromIntegral $ (unit theme) `div` 4
@@ -248,18 +259,18 @@ halfunit = 0
 quarterunit = 0
 
 full =
-  renamed [Replace "Full"]
+  renamed [Replace "<fn=1>\xf2d0</fn>"]
   $ Full
 tall =
-  renamed [Replace "Tall"]
+  renamed [Replace "<fn=1>\xf0db</fn>"]
   . spacingWithEdge quarterunit
   $ Tall 1 (1/16) (1/2)
 grid =
-  renamed [Replace "Grid"]
+  renamed [Replace "<fn=1>\xf0ce</fn>"]
   . spacingWithEdge quarterunit
   $ Grid
 tabbed' =
-  renamed [Replace "Tbbd"]
+  renamed [Replace "<fn=2>\xf2d0</fn>"]
   . gaps spec
   $ tabbed shrinkText tabbedConfig
     where spec = [(U, halfunit), (R, halfunit), (D, halfunit), (L, halfunit)]
@@ -278,7 +289,7 @@ prompt' = Prompt.def
   , Prompt.fgHLight = fg . active $ theme
   , Prompt.bgHLight = bg . active $ theme
   , Prompt.borderColor = bd . normal $ theme
-  , Prompt.position = Prompt.Top
+  , Prompt.position = Prompt.Bottom
   }
 
 
@@ -312,6 +323,18 @@ withUrgencyHook' =
 startupHook' = do
   let workscreenConfig = Workscreen.fromWorkspace numScreens workspaces'
   Workscreen.configWorkscreen workscreenConfig
+
+  spawn "setxkbmap -layout 'us, ru'"
+  spawn "setxkbmap -option 'grp:toggle, grp_led:scroll, ctrl:swapcaps'"
+
+  spawn "xinput set-prop 11 275 1"
+
+  spawn "xsetroot -cursor_name left_ptr"
+  spawn "bash $HOME/.fehbg"
+  spawn "compton -C -D 2"
+
+  spawn "dropbox"
+
   return ()
 
 
@@ -319,6 +342,7 @@ startupHook' = do
 config' = def
   { modMask = super
   , workspaces = workspaces'
+  , terminal = terminal'
   , keys = keys'
   , layoutHook = layoutHook'
   , manageHook = manageHook'
@@ -333,4 +357,5 @@ main = do
   let templateFile = "/home/me/.xmonad/xmobarrc"
   let outputFile = "/home/me/.xmobarrc"
   compileWithTheme theme templateFile outputFile
+
   xmonad . withUrgencyHook' =<< xmobar config'
