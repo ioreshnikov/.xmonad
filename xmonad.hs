@@ -181,13 +181,13 @@ keys' config = Data.Map.fromList $
 
 numScreens = 1
 workspaces' =
-  [ "1  <fn=1>\xf14e</fn>"
-  , "2  <fn=1>\xf121</fn>"
-  , "3  <fn=1>\xf0c3</fn>"
-  , "4  <fn=1>\xf108</fn>"
-  , "5  <fn=1>\xf108</fn>"
-  , "6  <fn=1>\xf1d8</fn>"
-  , "7  <fn=1>\xf1b2</fn>"
+  [ "1  <fn=1>\xf14e</fn>  Browser"
+  , "2  <fn=1>\xf121</fn>  Emacs"
+  , "3  <fn=1>\xf0c3</fn>  Terminal"
+  , "4  <fn=1>\xf108</fn>  Workspace"
+  , "5  <fn=1>\xf108</fn>  Workspace"
+  , "6  <fn=1>\xf1d8</fn>  Telegram"
+  , "7  <fn=1>\xf1b2</fn>  VirtualBox"
   ]
 
 fancySubscripts workspace = workspace'
@@ -216,14 +216,17 @@ makePrettyPrinter color = def
   , ppWsSep = "    "
   , ppSep = "      "
   , ppTitle = const ""
-  , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme)
+  , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme) . nl
   }
   where
     mc workspace@(n:_) =
       "<action=xdotool key super+F" ++ [n] ++ ">"
       ++ workspace ++
       "</action>"
-
+    nl layout =
+      "<action=xdotool key super+space>"
+      ++ layout ++
+      "</action>"
 
 prettyPrinter = makePrettyPrinter xmobarColor
 toggleStruts = const (super, xK_b)
@@ -264,18 +267,18 @@ eighthunit = fromIntegral $ (unit theme) `div` 8
 -- quarterunit = 0
 
 full =
-  renamed [Replace "<fn=1>\xf2d0</fn>"]
+  renamed [Replace "<fn=1>\xf2d0</fn> Fullscreen"]
   $ Full
 tall =
-  renamed [Replace "<fn=1>\xf0db</fn>"]
+  renamed [Replace "<fn=1>\xf0db</fn> Tall"]
   . spacingWithEdge quarterunit
   $ Tall 1 (1/16) (1/2)
 grid =
-  renamed [Replace "<fn=1>\xf0ce</fn>"]
+  renamed [Replace "<fn=1>\xf0ce</fn> Grid"]
   . spacingWithEdge quarterunit
   $ Grid
 tabbed' =
-  renamed [Replace "<fn=2>\xf2d0</fn>"]
+  renamed [Replace "<fn=2>\xf2d0</fn> Tabbed"]
   . gaps spec
   $ tabbed shrinkText tabbedConfig
     where spec =
