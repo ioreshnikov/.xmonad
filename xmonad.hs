@@ -92,6 +92,12 @@ fullscreen = do
     sendMessage ToggleStruts
     sendMessage $ Toggle FULL
 
+tighten = do
+  sendMessage ToggleGaps
+  sendMessage $ ModifySpacing toggle
+    where toggle 0 = quarterunit
+          toggle _ = 0
+
 volumeUp = spawn "pamixer -i 10"
 volumeDown = spawn "pamixer -d 10"
 volumeToggle = spawn "pamixer -t"
@@ -140,7 +146,8 @@ keys' config = Data.Map.fromList $
   ++
   [ ((super, xK_r), shellPrompt prompt') ]
   ++
-  [ ((super, xK_f), fullscreen) ]
+  [ ((super, xK_g), tighten),
+    ((super, xK_f), fullscreen) ]
   ++
   [ ((0, xF86XK_AudioLowerVolume), volumeDown)
   , ((0, xF86XK_AudioRaiseVolume), volumeUp)
