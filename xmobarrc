@@ -1,17 +1,19 @@
 Config
   { font = "$theme.font$"
+  , alpha = 0
   , additionalFonts = [
     "xft:Font Awesome 5 Free Solid:size=10.5",
     "xft:Font Awesome 5 Free:size=10.5",
     "xft:Font Awesome 5 Brands:size=10.5"
   ]
   , position = BottomSize C 100 $theme.unit$
+  , lowerOnStart = True
   , bgColor = "$theme.normal.background$"
   , fgColor = "$theme.normal.foreground$"
-  , border = TopB
+  , border = NoBorder
   , borderColor = "$theme.normal.border$"
   , commands =
-    [ Run StdinReader
+    [ Run UnsafeStdinReader
     , Run Com "/home/me/.xmonad/brightness.py"  [] "brightness" 10
     , Run Com "/home/me/.xmonad/volume.py"      [] "volume"     10
     , Run Com "/home/me/.xmonad/network.py"     [] "network"    600
@@ -20,5 +22,5 @@ Config
     ]
   , sepChar  = "%"
   , alignSep = "}{"
-  , template = "} %StdinReader% { %brightness%      %volume%      %network%      %battery%      %time%    "
+  , template = "    %UnsafeStdinReader%    }{ %brightness%      %volume%      %network%      %battery%      %time%    "
   }

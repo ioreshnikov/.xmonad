@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-
 -- Imports --
 -------------
 
@@ -63,7 +62,6 @@ bd = border
 
 data XMonadTheme = XMonadTheme
   { font :: Font
-  , additionalFonts :: [Font]
   , unit :: Integer
   , normal :: Colors
   , active :: Colors
@@ -72,12 +70,12 @@ data XMonadTheme = XMonadTheme
   } deriving Data
 
 arcTheme = XMonadTheme
-  { font = "xft:Futura BookC:style=bold:size=11"
+  { font = "xft:Futura BookC:size=11"
   , unit = 48
   , normal = Colors "#ffffff" "#252a35" "#252a35"
   , active = Colors "#ffffff" "#252a35" "#252a35"
-  , hidden = Colors "#666666" "#252a35" "#252a35"
-  , urgent = Colors "#a22921" "#252a35" "#252a35"
+  , hidden = Colors "#aaaaaa" "#252a35" "#252a35"
+  , urgent = Colors "#deae3e" "#252a35" "#252a35"
   }
 
 theme = arcTheme
@@ -86,13 +84,13 @@ theme = arcTheme
 -- Custom commands --
 ---------------------
 
-terminal' = "gnome-terminal"
+terminal' = "xterm"
 recompile' = spawn "xmonad --recompile && xmonad --restart"
 exit = io exitSuccess
 
 fullscreen = do
     sendMessage ToggleStruts
-    sendMessage (Toggle FULL)
+    sendMessage $ Toggle FULL
 
 volumeUp = spawn "pamixer -i 10"
 volumeDown = spawn "pamixer -d 10"
@@ -189,6 +187,7 @@ workspaces' =
   , "4  <fn=1>\xf108</fn>"
   , "5  <fn=1>\xf108</fn>"
   , "6  <fn=1>\xf1d8</fn>"
+  , "7  <fn=1>\xf1b2</fn>"
   ]
 
 fancySubscripts workspace = workspace'
@@ -209,18 +208,22 @@ fancySubscripts workspace = workspace'
 
 -- Pretty printer --
 makePrettyPrinter color = def
-  { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . un
-  , ppVisible = color (fg . hidden $ theme) (bg . hidden $ theme) . un
-  , ppHidden = color (fg . hidden $ theme) (bg . hidden $ theme) . un
-  , ppHiddenNoWindows = color (fg . hidden $ theme) (bg . hidden $ theme) . un
-  , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . un
+  { ppCurrent = color (fg . active $ theme) (bg . active $ theme) . mc
+  , ppVisible = color (fg . active $ theme) (bg . active $ theme) . mc
+  , ppHidden = color (fg . hidden $ theme) (bg . hidden $ theme) . mc
+  , ppHiddenNoWindows = const ""
+  , ppUrgent = color (fg . urgent $ theme) (bg . urgent $ theme) . mc
   , ppWsSep = "    "
   , ppSep = "      "
   , ppTitle = const ""
   , ppLayout = color (fg . hidden $ theme) (bg . hidden $ theme)
   }
   where
-    un = fancySubscripts
+    mc workspace@(n:_) =
+      "<action=xdotool key super+F" ++ [n] ++ ">"
+      ++ workspace ++
+      "</action>"
+
 
 prettyPrinter = makePrettyPrinter xmobarColor
 toggleStruts = const (super, xK_b)
@@ -253,10 +256,12 @@ tabbedConfig = def
 
 threequarterunit = fromIntegral . (* 3) $ (unit theme) `div` 4
 
--- halfunit = fromIntegral $ (unit theme) `div` 2
--- quarterunit = fromIntegral $ (unit theme) `div` 4
-halfunit = 0
-quarterunit = 0
+halfunit = fromIntegral $ (unit theme) `div` 2
+quarterunit = fromIntegral $ (unit theme) `div` 4
+eighthunit = fromIntegral $ (unit theme) `div` 8
+
+-- halfunit = 0
+-- quarterunit = 0
 
 full =
   renamed [Replace "<fn=1>\xf2d0</fn>"]
@@ -273,9 +278,17 @@ tabbed' =
   renamed [Replace "<fn=2>\xf2d0</fn>"]
   . gaps spec
   $ tabbed shrinkText tabbedConfig
-    where spec = [(U, halfunit), (R, halfunit), (D, halfunit), (L, halfunit)]
+    where spec =
+            [ (U, halfunit)
+            , (R, halfunit)
+            , (D, halfunit)
+            , (L, halfunit)
+            ]
 
-layoutHook' = smartBorders $ tall ||| grid ||| tabbed' ||| full
+layoutHook' =
+  noBorders
+  . mkToggle (NOBORDERS ?? FULL ?? EOT)
+  $ (tall ||| grid ||| tabbed' ||| full)
 
 
 -- Prompt --
@@ -331,12 +344,13 @@ startupHook' = do
 
   spawn "xsetroot -cursor_name left_ptr"
   spawn "bash $HOME/.fehbg"
-  spawn "compton -C -D 2"
+  spawn "compton -c --no-fading-openclose"
+
+  spawn "xrdb -all $HOME/.Xresources"
 
   spawn "dropbox"
 
   return ()
-
 
 -- Config --
 config' = def
