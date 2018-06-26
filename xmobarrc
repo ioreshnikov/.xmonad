@@ -18,7 +18,7 @@ Config
     , Run Com "/home/me/.xmonad/volume.py"      [] "volume"     10
     , Run Com "/home/me/.xmonad/network.py"     [] "network"    600
     , Run Com "/home/me/.xmonad/battery.py"     [] "battery"    600
-    , Run Date "%A, %H:%M" "time" 10
+    , Run Date "%b %d, %A, %H:%M" "time" 10
     ]
   , sepChar  = "%"
   , alignSep = "}{"

@@ -382,4 +382,4 @@ main = do
   let outputFile = "/home/me/.xmobarrc"
   compileWithTheme theme templateFile outputFile
 
-  xmonad . withUrgencyHook' =<< xmobar config'
+  xmonad . ewmh . withUrgencyHook' =<< xmobar config'
